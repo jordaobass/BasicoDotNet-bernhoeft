@@ -1,11 +1,11 @@
-﻿using Bernhoeft.GRT.ContractWeb.Domain.SqlServer.ContractStore.Interfaces.Repositories;
-using Bernhoeft.GRT.Core.EntityFramework.Domain.Interfaces;
+﻿using Bernhoeft.GRT.Core.EntityFramework.Domain.Interfaces;
 using Bernhoeft.GRT.Core.Enums;
 using Bernhoeft.GRT.Core.Extensions;
 using Bernhoeft.GRT.Core.Interfaces.Results;
 using Bernhoeft.GRT.Core.Models;
 using Bernhoeft.GRT.Teste.Application.Requests.Queries.v1;
 using Bernhoeft.GRT.Teste.Application.Responses.Queries.v1;
+using Bernhoeft.GRT.Teste.Domain.Interfaces.Repositories;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 

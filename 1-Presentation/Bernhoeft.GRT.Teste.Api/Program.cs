@@ -2,8 +2,10 @@
 using System.Globalization;
 using System.Text.Json.Serialization;
 using Bernhoeft.GRT.Core.Extensions;
+using Bernhoeft.GRT.Teste.Api.Middlewares;
 using Bernhoeft.GRT.Teste.Api.Swashbuckle;
 using Bernhoeft.GRT.Teste.Application.Requests.Queries.v1;
+using Bernhoeft.GRT.Teste.Infra.Persistence.InMemory.Microsoft.Extensions.DependencyInjection;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using MicroElements.Swashbuckle.FluentValidation.AspNetCore;
@@ -22,9 +24,17 @@ builder.WebHost.UseKestrel(options =>
 {
     options.AddServerHeader = false; /* Header com Informações do Servidor. */
     options.Limits.MaxRequestLineSize = 32 * 1024; /* Tamanho máximo do URL (em bytes). */
+    // TODO: Avaliar se 50MB é adequado para esta API. Para APIs de CRUD simples, considerar reduzir para 1-5MB.
+    // Valores altos podem expor a API a ataques de negação de serviço (DoS) por consumo de memória.
     options.Limits.MaxRequestBodySize = 50 * 1024 * 1024; /* Tamanho máximo da solicitação (em bytes). */
+    // TODO: Configurar taxas mínimas em produção para evitar ataques Slowloris (conexões lentas que consomem recursos).
+    // Exemplo: new MinDataRate(bytesPerSecond: 100, gracePeriod: TimeSpan.FromSeconds(10))
     options.Limits.MinResponseDataRate = null; /* Taxa mínima de dados de resposta (bytes/segundo). */
     options.Limits.MinRequestBodyDataRate = null; /* Taxa mínima de dados de solicitação (bytes/segundo). */
+    // TODO: Configurar timeout para requisições em produção para evitar conexões penduradas.
+    // Exemplo:
+    // options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(2);
+    // options.Limits.RequestHeadersTimeout = TimeSpan.FromSeconds(30);
     if (int.TryParse(Environment.GetEnvironmentVariable("PORT"), out var port))
         options.ListenAnyIP(port);
 });
@@ -104,8 +114,29 @@ builder.Services.AddFluentValidationRulesToSwagger();
 builder.Services.Configure<FormOptions>(options => options.ValueCountLimit = int.MaxValue)
                 .Configure<RouteOptions>(options => options.LowercaseUrls = true);
 
+// TODO: Configurar Rate Limiting para proteger a API contra abuso
+// Exemplo:
+// builder.Services.AddRateLimiter(options =>
+// {
+//     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+//         RateLimitPartition.GetFixedWindowLimiter(
+//             partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+//             factory: _ => new FixedWindowRateLimiterOptions
+//             {
+//                 AutoReplenishment = true,
+//                 PermitLimit = 100,
+//                 Window = TimeSpan.FromMinutes(1)
+//             }));
+//     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+// });
+// Requer: using System.Threading.RateLimiting;
+
 // Configurando a Pipeline do HTTP Request.
 var app = builder.Build();
+
+// Middleware de tratamento global de exceções (deve ser o primeiro)
+app.UseGlobalExceptionHandler();
+
 app.UseForwardedHeaders(new()
 {
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
@@ -126,6 +157,14 @@ if (app.Environment.IsDevelopment() || app.Environment.IsStaging() || Debugger.I
     });
 }
 
+// TODO: Configurar CORS de forma mais restritiva em produção
+// A configuração atual permite qualquer origem (SetIsOriginAllowed = true), o que é adequado para desenvolvimento
+// Em produção, especifique as origens permitidas explicitamente:
+// Exemplo:
+// app.UseCors(options => options.WithOrigins("https://meusite.com", "https://app.meusite.com")
+//                               .AllowAnyHeader()
+//                               .AllowAnyMethod()
+//                               .AllowCredentials());
 app.UseCors(options => options.WithOrigins()
                               .AllowAnyHeader()
                               .AllowAnyMethod()

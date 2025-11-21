@@ -1,0 +1,184 @@
+
+@baseUrl = https://localhost:5001/api/v1
+
+# A API redireciona HTTP para HTTPS automaticamente
+# HTTP: http://localhost:5000 -> redireciona para HTTPS
+# HTTPS: https://localhost:5001 (use esta)
+
+### ============================================
+### GET - Listar todos os avisos ativos
+### ============================================
+
+GET {{baseUrl}}/avisos
+Content-Type: application/json
+
+### ============================================
+### GET - Buscar aviso por ID
+### ============================================
+
+GET {{baseUrl}}/avisos/1
+Content-Type: application/json
+
+### ============================================
+### GET - Buscar aviso inexistente (404)
+### ============================================
+
+GET {{baseUrl}}/avisos/99999
+Content-Type: application/json
+
+### ============================================
+### GET - ID inválido (400)
+### ============================================
+
+GET {{baseUrl}}/avisos/0
+Content-Type: application/json
+
+### ============================================
+### POST - Criar novo aviso
+### ============================================
+
+POST {{baseUrl}}/avisos
+Content-Type: application/json
+
+{
+    "Titulo": "Aviso Importante",
+    "Mensagem": "Esta é uma mensagem de teste para o aviso."
+}
+
+### ============================================
+### POST - Criar aviso com título longo
+### ============================================
+
+POST {{baseUrl}}/avisos
+Content-Type: application/json
+
+{
+    "Titulo": "Manutenção Programada do Sistema",
+    "Mensagem": "Informamos que o sistema estará em manutenção no próximo sábado, das 22h às 06h. Durante este período, os serviços estarão indisponíveis."
+}
+
+### ============================================
+### POST - Erro: Título vazio (400)
+### ============================================
+
+POST {{baseUrl}}/avisos
+Content-Type: application/json
+
+{
+    "Titulo": "",
+    "Mensagem": "Mensagem válida"
+}
+
+### ============================================
+### POST - Erro: Mensagem vazia (400)
+### ============================================
+
+POST {{baseUrl}}/avisos
+Content-Type: application/json
+
+{
+    "Titulo": "Título válido",
+    "Mensagem": ""
+}
+
+### ============================================
+### POST - Erro: Título excede 50 caracteres (400)
+### ============================================
+
+POST {{baseUrl}}/avisos
+Content-Type: application/json
+
+{
+    "Titulo": "Este título é muito longo e excede o limite de cinquenta caracteres permitidos",
+    "Mensagem": "Mensagem válida"
+}
+
+### ============================================
+### PUT - Atualizar mensagem do aviso
+### (Altere o ID conforme necessário)
+### ============================================
+
+PUT {{baseUrl}}/avisos/1
+Content-Type: application/json
+
+{
+    "Mensagem": "Mensagem atualizada com sucesso!"
+}
+
+### ============================================
+### PUT - Erro: Mensagem vazia (400)
+### ============================================
+
+PUT {{baseUrl}}/avisos/1
+Content-Type: application/json
+
+{
+    "Mensagem": ""
+}
+
+### ============================================
+### PUT - Erro: Aviso inexistente (404)
+### ============================================
+
+PUT {{baseUrl}}/avisos/99999
+Content-Type: application/json
+
+{
+    "Mensagem": "Tentando atualizar aviso inexistente"
+}
+
+### ============================================
+### DELETE - Remover aviso (soft delete)
+### (Altere o ID conforme necessário)
+### ============================================
+
+DELETE {{baseUrl}}/avisos/1
+Content-Type: application/json
+
+### ============================================
+### DELETE - Erro: Aviso inexistente (404)
+### ============================================
+
+DELETE {{baseUrl}}/avisos/99999
+Content-Type: application/json
+
+### ============================================
+### Cenário completo de teste
+### ============================================
+
+### 1. Criar um aviso
+POST {{baseUrl}}/avisos
+Content-Type: application/json
+
+{
+    "Titulo": "Teste Completo",
+    "Mensagem": "Mensagem inicial do teste"
+}
+
+### 2. Listar avisos (deve aparecer o aviso criado)
+GET {{baseUrl}}/avisos
+Content-Type: application/json
+
+### 3. Buscar o aviso criado (altere o ID)
+GET {{baseUrl}}/avisos/1
+Content-Type: application/json
+
+### 4. Atualizar a mensagem (altere o ID)
+PUT {{baseUrl}}/avisos/1
+Content-Type: application/json
+
+{
+    "Mensagem": "Mensagem foi atualizada - AtualizadoEm deve estar preenchido"
+}
+
+### 5. Verificar a atualização (altere o ID)
+GET {{baseUrl}}/avisos/1
+Content-Type: application/json
+
+### 6. Deletar o aviso (soft delete - altere o ID)
+DELETE {{baseUrl}}/avisos/1
+Content-Type: application/json
+
+### 7. Tentar buscar o aviso deletado (deve retornar 404)
+GET {{baseUrl}}/avisos/1
+Content-Type: application/json
